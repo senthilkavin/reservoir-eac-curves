@@ -79,6 +79,11 @@ for line in [
 ]: notes.append(line)
 notes.column_dimensions['A'].width = 16; notes.column_dimensions['B'].width = 150
 wb.save(OUT + 'Chembarambakkam_EAC.xlsx')
+# fine table for level-pool routing (hydrology-dambreak engine.py reads this format)
+with open(OUT + 'Chembarambakkam_EAC_0.05m.csv', 'w', newline='') as f:
+    w = csv.writer(f); w.writerow(['elevation_m', 'area_m2', 'storage_m3'])
+    for h in np.round(np.arange(GZ, 28.5 + 1e-9, 0.05), 3):
+        a, s, _ = adopted(h); w.writerow([h, round(a * 1e6, 1), round(s * 1e6, 1)])
 # chart
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 H = np.arange(GZ, 28.501, 0.05); AD = np.array([adopted(h)[:2] for h in H])
