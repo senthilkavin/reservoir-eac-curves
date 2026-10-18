@@ -20,30 +20,51 @@ Read that file before advising on DEM choice, polygon delineation, the Excel tem
 
 | Path | Use |
 |---|---|
+| `scripts/delineate_reservoir.py` | Maximum flooded area polygon from DEM + seed point + dam/bund axis; `--spill` finds leaks |
 | `scripts/eac_from_dem.py` | Headless EAC calculator (rasterio). Same numbers as the QGIS script |
 | `scripts/monitor_volume.py` | Area time series → volume and level, same interpolation as the template's Calcs sheet |
 | `02 Tools/Reservoir Stage Calculator V2.py` | The QGIS Python Console script, for users working in QGIS |
 | `02 Tools/Reservoir Elevation-Area-Capacity Template V1.xlsx` | Excel template with curve, monitoring and annual charts |
 | `03 Mirani Reservoir/` | Worked example: QGIS export (`01`) and completed template (`02`) |
+| `04 Chembarambakkam Tank/` | Worked headless example: tank with a long bund, hidden bed, power-law fill (read its README) |
 | `references/method.md` | DEM and datum caveats, polygon delineation in QGIS, template and GWW steps |
 
-Setup: `pip install rasterio fiona shapely pyproj numpy openpyxl matplotlib`.
+Setup: `pip install rasterio fiona shapely pyproj numpy scipy openpyxl matplotlib`.
 
 ## 1. Gather inputs
 
 - **Reservoir**: name, dam location, and any known levels (sill, FRL, MWL, TBL) with their datum.
-- **DEM**: a GeoTIFF from the user, or SRTM 1″ for the area (see `references/method.md` for sources).
-  It must cover every area that could flood.
+- **DEM**: a GeoTIFF from the user, or download one. Prefer **Copernicus GLO-30** (2011–15, better
+  vertical accuracy) over SRTM (Feb 2000, integer metres, noisy in flat country); both are public on AWS
+  (URLs in `references/method.md`). Mosaic enough tiles to cover every area that could flood plus the
+  upstream valleys, and check that the result doesn't run into the DEM edge.
 - **Maximum flooded area polygon** (gpkg/shp/geojson). This matters more than anything else: without
-  it, every low cell in the DEM, including the valley downstream of the dam, counts as reservoir. If the user
-  has none, either (a) they build one in QGIS (contour above the dam crest + dam axis → polygon,
-  method.md §3), or (b) they already have a DEM clipped to the reservoir. Do not quietly run on an
-  unclipped DEM; if you must for a quick look, say plainly the result is an upper bound.
+  it, every low cell in the DEM, including the valley downstream of the dam, counts as reservoir. Use the
+  user's polygon if they have one; otherwise build it with `delineate_reservoir.py` (step 2a) or in QGIS
+  (method.md §2). Never run on an unclipped DEM and report the result as the reservoir.
 - **Levels**: minimum (default: DEM minimum), maximum (the contour used for the polygon, not the
   DEM's highest island), step (1 m is usual; 0.5 m for small tanks).
 - For monitoring: the Global Water Watch CSV (`time`, `Surface Water Area (km2)`) or any date + km² table.
 
-## 2. Compute the EAC table
+## 2a. Delineate the maximum flooded area (if no polygon)
+
+```
+python scripts/delineate_reservoir.py dem.tif --seed LON LAT --level TOP --barrier "lon,lat;lon,lat;..." --spill
+python scripts/delineate_reservoir.py dem.tif --seed LON LAT --level TOP --barrier "..." --out area.geojson
+```
+
+- Seed: a point well inside the water. TOP: just above the crest or top of bund; the manual uses a
+  contour 10–20 m above a dam crest, while for a tank the top of bund is enough.
+- Barrier: the dam or bund axis. Trace it **on the DEM crest**: plot the DEM at native resolution with
+  contours and follow the ridge. Lines drawn by eye from imagery sit beside the crest and leak around
+  their ends. Burning it in matters wherever a 30 m DEM under-resolves the crest (Chembarambakkam's
+  bund dips to 26.3 m in places).
+- `--spill` reports the level at which the fill first escapes and where. If the spill point is at the
+  end of the barrier, extend the barrier along the crest and rerun. If it is a natural saddle away from
+  the dam, stop the curve just below it and report the saddle (it may be real, a cross bund, or a
+  surface-model artefact). Plot the polygon over the DEM and look at it before using it.
+
+## 2b. Compute the EAC table
 
 ```
 python scripts/eac_from_dem.py reservoir_dem.tif --mask reservoir_area.gpkg \
@@ -58,9 +79,19 @@ python scripts/eac_from_dem.py reservoir_dem.tif --mask reservoir_area.gpkg \
 - Nodata left unset (99999, 0 outside the mask) corrupts the curve; the script drops implausible
   values and says so. Check its `note:` lines.
 
+**DEM water surfaces.** Copernicus and SRTM flatten water bodies to a single level (find it as the
+most common elevation inside the polygon), and nothing below it is measured. A reservoir that held
+water when the DEM was flown therefore has a hidden bed: the curve shows zero storage up to that
+level, then a jump in area. When a published capacity at FRL exists, fill the hidden part with a power
+law from the bed or gauge zero, S(h) = S_w · ((h − GZ)/(h_w − GZ))^b, with S_w = S_pub(FRL) − S_DEM(FRL)
+and b = A_w (h_w − GZ) / S_w, so the area is continuous at the water surface. Say clearly that this
+part is forced to the published (often design, pre-sedimentation) capacity. `04 Chembarambakkam
+Tank/build_chembarambakkam.py` is a worked example; adapt it rather than starting over.
+
 **Sanity checks before reporting**: area and capacity rise monotonically; capacity ≈ Σ area × step;
 the curve is smooth for large reservoirs (bumpy is normal when the reservoir is only a few hundred
-cells); the area at the top level ≈ polygon area. If a published capacity at FRL exists, compare and
+cells); the area at the top level ≈ polygon area; a DEM bund/dam crest close to the known TBL
+(a datum check); and where two DEMs disagree, say which you adopted and why. If a published capacity at FRL exists, compare and
 state the difference; SRTM-based curves are planning-level.
 
 ## 3. Monitoring (optional)

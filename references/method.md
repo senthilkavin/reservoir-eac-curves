@@ -18,9 +18,13 @@ monitoring with Global Water Monitor https://youtu.be/-0BGnorZgMg.
   gives WGS84 ellipsoid heights, and dam drawings use a local datum, so none of these compare
   directly with SRTM levels. Orthometric height = ellipsoid height − geoid undulation. Standard GPS
   vertical error is about 3× its horizontal error.
-- Where to get SRTM: USGS EarthExplorer, OpenTopography, NASA Earthdata (SRTMGL1), or the
-  public AWS terrain tiles (`https://s3.amazonaws.com/elevation-tiles-prod/skadi/N25/N25E062.hgt.gz`;
-  1° tiles named by the lower-left corner). Use whichever the network allows. A local survey or a
+- Public downloads with no login (1° tiles named by the lower-left corner):
+  - Copernicus GLO-30 (preferred; EGM2008; water bodies flattened):
+    `https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N12_00_E080_00_DEM/Copernicus_DSM_COG_10_N12_00_E080_00_DEM.tif`
+  - SRTM 1″: `https://s3.amazonaws.com/elevation-tiles-prod/skadi/N25/N25E062.hgt.gz`
+  - Also USGS EarthExplorer, OpenTopography, NASA Earthdata (SRTMGL1). Use whichever the network allows.
+- Both are surface models: trees, buildings and road embankments show up as ground, which matters
+  in flat, built-up country. A local survey or a
   finer DEM is better than SRTM whenever the user has one.
 
 ## 2. Polygon of the maximum flooded area (QGIS, manual §3.1–3.8)

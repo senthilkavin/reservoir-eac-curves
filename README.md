@@ -16,6 +16,8 @@ and storage monitoring in an Excel template. Mirani Reservoir is included as a w
 | `03 Mirani Reservoir/01 Mirani Reservoir Data.xlsx` | Elevation-area-volume table exported from QGIS for Mirani |
 | `03 Mirani Reservoir/02 Mirani Elevation-Area-Capacity.xlsx` | Completed template for Mirani, with monitoring data |
 | `SKILL.md` | Claude skill definition (`/area-elevation-capacity`) |
+| `scripts/delineate_reservoir.py` | Maximum flooded area polygon from a DEM, seed point and dam/bund axis |
+| `04 Chembarambakkam Tank/` | Headless worked example (Copernicus DEM, bund barrier, hidden-bed fill) |
 | `scripts/eac_from_dem.py` | Headless EAC calculator (no QGIS): DEM + reservoir polygon → table and chart |
 | `scripts/monitor_volume.py` | Water-area time series (e.g. Global Water Watch CSV) → volume and level |
 | `references/method.md` | Condensed method notes from the manual |
@@ -32,7 +34,7 @@ and storage monitoring in an Excel template. Mirani Reservoir is included as a w
 ## Without QGIS
 
 ```
-pip install rasterio fiona shapely pyproj numpy openpyxl matplotlib
+pip install rasterio fiona shapely pyproj numpy scipy openpyxl matplotlib
 python scripts/eac_from_dem.py reservoir_dem.tif --mask reservoir_area.gpkg --min 47 --max 95 \
     --out eac.xlsx --plot eac.png --name "Mirani Reservoir"
 python scripts/monitor_volume.py eac.xlsx "Surface Water Area (#88182).csv" --start 2007-01-01 \
