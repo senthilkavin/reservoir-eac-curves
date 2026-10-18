@@ -27,6 +27,7 @@ Read that file before advising on DEM choice, polygon delineation, the Excel tem
 | `02 Tools/Reservoir Elevation-Area-Capacity Template V1.xlsx` | Excel template with curve, monitoring and annual charts |
 | `03 Mirani Reservoir/` | Worked example: QGIS export (`01`) and completed template (`02`) |
 | `04 Chembarambakkam Tank/` | Worked headless example: tank with a long bund, hidden bed, power-law fill (read its README) |
+| `05 Krishnagiri Dam/` | Worked example for a dam: under-resolved crest, hidden bed, curve checked against WRD bulletin gauge (ft) readings |
 | `references/method.md` | DEM and datum caveats, polygon delineation in QGIS, template and GWW steps |
 
 Setup: `pip install rasterio fiona shapely pyproj numpy scipy openpyxl matplotlib`.

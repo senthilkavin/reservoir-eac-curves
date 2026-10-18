@@ -18,6 +18,7 @@ and storage monitoring in an Excel template. Mirani Reservoir is included as a w
 | `SKILL.md` | Claude skill definition (`/area-elevation-capacity`) |
 | `scripts/delineate_reservoir.py` | Maximum flooded area polygon from a DEM, seed point and dam/bund axis |
 | `04 Chembarambakkam Tank/` | Headless worked example (Copernicus DEM, bund barrier, hidden-bed fill) |
+| `05 Krishnagiri Dam/` | Headless example for a gravity dam: dam axis burnt in, hidden bed, curve checked against WRD gauge-storage readings |
 | `scripts/eac_from_dem.py` | Headless EAC calculator (no QGIS): DEM + reservoir polygon → table and chart |
 | `scripts/monitor_volume.py` | Water-area time series (e.g. Global Water Watch CSV) → volume and level |
 | `references/method.md` | Condensed method notes from the manual |
